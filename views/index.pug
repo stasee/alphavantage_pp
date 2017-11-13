@@ -1,0 +1,17 @@
+﻿extends layout
+
+block headerscripts
+
+block scripts
+
+block content
+    table
+        thead
+            tr
+                th='Datum'
+                th='Schluss'
+        tbody
+            - for (let idx in tabledata)
+                tr
+                    td=tabledata[idx].date
+                    td=tabledata[idx].close
