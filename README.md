@@ -1,6 +1,8 @@
 # alphavantage_pp
 Converts alphavantage Crypto Charts to html tables for Portfolio Performance
 
+Put you Alpha Vantage API Key in the 'apiKey' Environment or put it in the main.js
+
 Launch it with node main.js
 
 By default it listens to port 3005
