@@ -10,8 +10,10 @@ block content
             tr
                 th='Datum'
                 th='Schluss'
+                th='Währung'
         tbody
             - for (let idx in tabledata)
                 tr
                     td=tabledata[idx].date
                     td=tabledata[idx].close
+                    td=tabledata[idx].market

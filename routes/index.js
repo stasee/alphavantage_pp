@@ -18,6 +18,7 @@ function getChartData(symbol, market, callback) {
                             let rowdata = {};
                             rowdata.date = idx;
                             rowdata.close = jdates[idx][closefield];
+                            rowdata.market = market;
                             tabledata[idx] = rowdata;
                         }
                     }
@@ -27,13 +28,14 @@ function getChartData(symbol, market, callback) {
         });
 }
 
-function calcrealdata(td1, td2) {
+function calcrealdata(td1, td2, market) {
     let tabledata = [];
     for (let idx in td1) {
         if (td2.hasOwnProperty(idx)) {
             let rowdata = {};
             rowdata.date = idx;
             rowdata.close = td1[idx].close * td2[idx].close;
+            rowdata.market = market;
             tabledata[idx] = rowdata;
         }
     }
@@ -66,7 +68,7 @@ function getChartData2(symbol, intermarket, market, callback) {
                     return callback(err);
 
                 //calculate real values from both
-                let realdata = calcrealdata(tabledata1, tabledata2);
+                let realdata = calcrealdata(tabledata1, tabledata2, market);
                 callback(null, realdata);
             });
         });
