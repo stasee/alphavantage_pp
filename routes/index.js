@@ -2,7 +2,8 @@
 var router = express.Router();
 var request = require('request');
 
-function getChartData(symbol, market, callback) {
+function getChartDataTableFromAlpha(symbol, market, callback) {
+
     request('https://www.alphavantage.co/query?function=DIGITAL_CURRENCY_DAILY&symbol=' + symbol + '&market=' + market + '&apikey=' + process.env.apiKey, 
         function(error, result, body) {
             if (error) {
@@ -20,6 +21,36 @@ function getChartData(symbol, market, callback) {
                             rowdata.close = jdates[idx][closefield];
                             rowdata.market = market;
                             tabledata[idx] = rowdata;
+                        }
+                    }
+                }
+                return callback(null, tabledata);
+            }
+        });
+}
+
+function getChartDataDayFromAlpha(symbol, market, callback) {
+
+    request('https://www.alphavantage.co/query?function=DIGITAL_CURRENCY_INTRADAY&symbol=' + symbol + '&market=' + market + '&apikey=' + process.env.apiKey, 
+        function(error, result, body) {
+            if (error) {
+                return callback(error, null);
+            } else {
+                let tabledata = {};
+                let jdata = JSON.parse(body);
+                if (jdata.hasOwnProperty('Time Series (Digital Currency Intraday)')) {
+                    let jdates = jdata['Time Series (Digital Currency Intraday)'];
+                    for (let idx in jdates) {
+                        let closefield = '1a. price (' + market + ')'
+                        if (jdates[idx].hasOwnProperty(closefield)) {
+                            let dt = idx.substr(0, 10);
+                            let rowdata = {};
+                            rowdata.date = dt;
+                            rowdata.close = jdates[idx][closefield];
+                            rowdata.market = market;
+                            tabledata[dt] = rowdata;
+                            //just take the last
+                            break;
                         }
                     }
                 }
@@ -51,19 +82,43 @@ var symbols = {
     }
 }
 
-function getChartData2(symbol, intermarket, market, callback) {
+function getChartDataTable(symbol, intermarket, market, callback) {
     
     if (symbols.hasOwnProperty(symbol)) {
         intermarket = symbols[symbol].intermarket;
     }
     if (intermarket === null) {
-        return getChartData(symbol, market, callback);
+        return getChartDataTableFromAlpha(symbol, market, callback);
     } else {
-        getChartData(symbol, intermarket, function(err, tabledata1) {
+        getChartDataTableFromAlpha(symbol, intermarket, function(err, tabledata1) {
             if (err)
                 return callback(err);
 
-            getChartData(intermarket, market, function(err, tabledata2) {
+                getChartDataTableFromAlpha(intermarket, market, function(err, tabledata2) {
+                if (err)
+                    return callback(err);
+
+                //calculate real values from both
+                let realdata = calcrealdata(tabledata1, tabledata2, market);
+                callback(null, realdata);
+            });
+        });
+    }
+}
+
+function getChartDataDay(symbol, intermarket, market, callback) {
+    
+    if (symbols.hasOwnProperty(symbol)) {
+        intermarket = symbols[symbol].intermarket;
+    }
+    if (intermarket === null) {
+        return getChartDataDayFromAlpha(symbol, market, callback);
+    } else {
+        getChartDataDayFromAlpha(symbol, intermarket, function(err, tabledata1) {
+            if (err)
+                return callback(err);
+
+                getChartDataDayFromAlpha(intermarket, market, function(err, tabledata2) {
                 if (err)
                     return callback(err);
 
@@ -88,11 +143,35 @@ router.get('/table', function (req, res) {
     if (req.query.hasOwnProperty('intermarket'))
         intermarket = req.query.intermarket;
             
-    getChartData2(req.query.symbol, intermarket, market, function(err, tabledata) {
+    getChartDataTable(req.query.symbol, intermarket, market, function(err, tabledata) {
         if (err)
             return res.status(500).json({ error: err });
 
-        res.render('index', { title: 'Chart Data', tabledata: tabledata });
+        res.render('table', { title: 'Chart Data', tabledata: tabledata });
+    });
+});
+
+router.get('/', function (req, res) {
+    res.render('index', { title: 'Chart Data' });
+});
+
+router.get('/day', function (req, res) {
+    if (!req.query.hasOwnProperty('symbol'))
+        return res.status(500).json({ error: 'missing param symbol' });
+    
+    let market = 'EUR';
+    if (req.query.hasOwnProperty('market'))
+        market = req.query.market;
+
+    let intermarket = null;
+    if (req.query.hasOwnProperty('intermarket'))
+        intermarket = req.query.intermarket;
+            
+    getChartDataDay(req.query.symbol, intermarket, market, function(err, tabledata) {
+        if (err)
+            return res.status(500).json({ error: err });
+
+        res.render('day', { title: 'Day Chart Data', tabledata: tabledata });
     });
 });
 

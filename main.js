@@ -1,7 +1,11 @@
 'use strict'
 
-if (!process.env.hasOwnProperty('apiKey'))
-    process.env.apiKey = 'you alphavantage api Key here';
+if (!process.env.hasOwnProperty('apiKey')) {
+    try {
+        require('./local_config.js');
+    } catch (err) {}
+}
+    
 
 
 var express = require('express');
