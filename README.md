@@ -2,6 +2,7 @@
 Converts alphavantage Crypto Charts to html tables for Portfolio Performance
 
 Put your Alpha Vantage API Key in the 'apiKey' Environment or put it in the main.js
+You may also create a file 'local_config.js' with the following content: process.env.apiKey = 'myAPIKey';
 
 Do not forget to npm install
 Launch it with node main.js
