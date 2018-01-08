@@ -1,6 +1,11 @@
 # alphavantage_pp
-Converts alphavantage Crypto Charts to html tables for Portfolio Performance
+Create html tabes (Crypto Charts) for Portfolio Performance.
+At the moment, the alphavantage API has changed, the code takes only the current values from 
+coinmarketcap.com to present it as html table.
 
+alphavantange is currently not used any more.
+
+No more neccessary (at the moment):
 Put your Alpha Vantage API Key in the 'apiKey' Environment or put it in the main.js
 You may also create a file 'local_config.js' with the following content: process.env.apiKey = 'myAPIKey';
 
