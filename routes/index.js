@@ -198,6 +198,28 @@ function getChartDataDay(symbol, intermarket, market, callback) {
     });
 }
 
+function getChartDataDayJson(symbol, intermarket, market, callback) {
+    
+    updateCMCData(function(err) {
+        if (err)
+            return callback(err);
+
+        let rowdata = {};
+        for (let idx in CMCData) {
+            if ((symbol === 'BTG' && CMCData[idx].id == 'bitcoin-gold') ||
+                (symbol != 'BTG' && CMCData[idx].symbol === symbol)) {
+                let dt = new Date(parseInt(CMCData[idx].last_updated) * 1000);
+                let dtstring = dt.toISOString();
+                rowdata.symbol = symbol;
+                rowdata.date = dtstring;
+                rowdata.close = CMCData[idx].price_eur;
+                rowdata.market = market;
+            }
+        }
+        return callback(null, rowdata);
+    });
+}
+
 /* GET home page. */
 router.get('/table', function (req, res) {
     if (!req.query.hasOwnProperty('symbol'))
@@ -244,6 +266,26 @@ router.get('/day', function (req, res) {
     });
 });
 
+router.get('/dayjson', function (req, res) {
+    if (!req.query.hasOwnProperty('symbol'))
+        return res.status(500).json({ error: 'missing param symbol' });
+    
+    let market = 'EUR';
+    if (req.query.hasOwnProperty('market'))
+        market = req.query.market;
+
+    let intermarket = null;
+    if (req.query.hasOwnProperty('intermarket'))
+        intermarket = req.query.intermarket;
+            
+    getChartDataDayJson(req.query.symbol, intermarket, market, function(err, tabledata) {
+        if (err)
+            return res.status(500).json({ error: err });
+
+        res.status(200).json(tabledata);
+    });
+});
+getChartDataDayJson
 
 module.exports = router;
 
